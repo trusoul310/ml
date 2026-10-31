@@ -1,0 +1,31 @@
+import pandas as pd
+import numpy as np
+
+df = pd.read_csv(r"C:\Users\Software Lab -04\Downloads\titanic.csv")
+df.head()
+
+df.info()
+print(df.isnull().sum())
+
+#handling missing values
+df['Age'].fillna(df['Age'].mean(), inplace=True)                 #replace missing Age values with mean
+df['Embarked'].fillna(df['Embarked'].mode()[0], inplace=True)    #replace missing Embarked values with mode
+df.drop("Cabin",axis=1,inplace=True)                             #drop Cabin column bcoz most values are missing
+
+print(df.isnull().sum())     #verify missing values
+
+#Encode categorial variables
+encoder = LabelEncoder()      
+df['Sex'] = encoder.fit_transform(df['Sex'])               #convert Sex into numerical values
+df['Embarked'] = encoder.fit_transform(df['Embarked'])     #convert Embarked into numerical values
+df.head()        
+
+#Scaling
+scaler = StandardScaler()
+df[['Age','Fare']] = scaler.fit_transform(df[['Age','Fare']])    #scale numerical columns
+df.head()
+
+df.to_csv("Titanic_Cleaned.csv",index=False)
+print("Clean Dataset Saved Successfully")
+
+df.describe()
