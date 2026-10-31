@@ -1,0 +1,147 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.metrics import mean_squared_error, r2_score
+
+# 1. Load Dataset
+# Upload the diabetes.csv file to Google Colab
+df = pd.read_csv("diabetes.csv")
+
+print("First 5 rows:")
+print(df.head())
+
+print("\nDataset Shape:")
+print(df.shape)
+
+# 2. Select Input and Output
+# Glucose is selected as input feature
+X = df[['Glucose']]
+
+# Outcome is the target variable
+y = df['Outcome']
+
+# 3. Split Dataset
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.20,
+    random_state=42
+)
+
+# 4. Polynomial Regression for Different Degrees
+degrees = [1, 2, 3, 5, 10]
+
+results = []
+
+plt.figure(figsize=(12, 8))
+
+for degree in degrees:
+
+    # Create polynomial regression model
+    model = make_pipeline(
+        PolynomialFeatures(degree=degree),
+        LinearRegression()
+    )
+
+    # Train model
+    model.fit(X_train, y_train)
+
+    # Predictions
+    y_train_pred = model.predict(X_train)
+    y_test_pred = model.predict(X_test)
+
+    # Calculate errors
+    train_mse = mean_squared_error(y_train, y_train_pred)
+    test_mse = mean_squared_error(y_test, y_test_pred)
+
+    train_rmse = np.sqrt(train_mse)
+    test_rmse = np.sqrt(test_mse)
+
+    train_r2 = r2_score(y_train, y_train_pred)
+    test_r2 = r2_score(y_test, y_test_pred)
+
+    results.append([
+        degree,
+        train_mse,
+        test_mse,
+        train_rmse,
+        test_rmse,
+        train_r2,
+        test_r2
+    ])
+
+    # Plot prediction curve
+    X_curve = np.linspace(
+        X.min().values[0],
+        X.max().values[0],
+        200
+    ).reshape(-1, 1)
+
+    y_curve = model.predict(X_curve)
+
+    plt.plot(
+        X_curve,
+        y_curve,
+        label=f"Degree {degree}"
+    )
+
+# 5. Display Results
+results_df = pd.DataFrame(
+    results,
+    columns=[
+        "Degree",
+        "Train MSE",
+        "Test MSE",
+        "Train RMSE",
+        "Test RMSE",
+        "Train R²",
+        "Test R²"
+    ]
+)
+
+print("\nPolynomial Regression Results:")
+print(results_df.round(4))
+
+# 6. Plot Actual Data and Regression Curves
+plt.scatter(
+    X_test,
+    y_test,
+    alpha=0.5,
+    label="Test Data"
+)
+
+plt.xlabel("Glucose")
+plt.ylabel("Diabetes Outcome")
+plt.title("Polynomial Regression with Different Degrees")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# 7. Plot Bias-Variance Effect
+plt.figure(figsize=(10, 6))
+
+plt.plot(
+    degrees,
+    results_df["Train MSE"],
+    marker='o',
+    label="Training MSE"
+)
+
+plt.plot(
+    degrees,
+    results_df["Test MSE"],
+    marker='o',
+    label="Testing MSE"
+)
+
+plt.xlabel("Polynomial Degree")
+plt.ylabel("Mean Squared Error")
+plt.title("Bias-Variance Trade-off")
+plt.xticks(degrees)
+plt.legend()
+plt.grid(True)
+plt.show()
