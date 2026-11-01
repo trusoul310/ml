@@ -1,26 +1,19 @@
 import pandas as pd
 import numpy as np
-
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 
 # Load Dataset
 df = pd.read_csv(r"C:\Downloads\california_housing.csv")
-
 print(df.head())
-print(df.shape)
-print(df.info())
-print(df.describe())
 
 # Select Features and Target
 X = df.drop('MedHouseVal', axis=1)
 y = df['MedHouseVal']
 
 # Split Dataset
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.20, random_state=42
-)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
 
 # Train Model
 model = LinearRegression()
@@ -30,31 +23,10 @@ model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 
 # Evaluate Model
-print()
-
 mse = mean_squared_error(y_test, y_pred)
-print("Mean Squared Error =", mse)
-
 rmse = np.sqrt(mse)
-print("Root Mean Squared Error =", rmse)
-
 r2 = r2_score(y_test, y_pred)
+
+print("Mean Squared Error =", mse)
+print("Root Mean Squared Error =", rmse)
 print("R2 Score =", r2)
-
-# Regression Coefficients
-print("Regression Coefficients")
-
-for feature, coef in zip(X.columns, model.coef_):
-    print(feature, "=", coef)
-
-print("Intercept =", model.intercept_)
-
-print()
-
-# Compare Actual and Predicted Values
-result = pd.DataFrame({
-    'Actual': y_test.values,
-    'Predicted': y_pred
-})
-
-print(result.head(10))
