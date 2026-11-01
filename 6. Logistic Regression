@@ -6,7 +6,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, accuracy_score, classification_report
 
 # Load Dataset
-df = pd.read_csv(r"C:\Users\Avinash hase\Downloads\breast_cancer_wisconsin.csv")
+df = pd.read_csv(r"C:\Downloads\breast_cancer_wisconsin.csv")
 print(df.head())
 print(df.shape)
 print(df.isnull().sum())
