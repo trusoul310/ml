@@ -1,0 +1,115 @@
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+
+# Grid World Setup
+ROWS, COLS = 4, 4
+START = (0, 0)
+GOAL = (3, 3)
+OBSTACLE = (1, 1)
+
+ACTIONS = {0: (-1, 0), 1: (1, 0), 2: (0, -1), 3: (0, 1)}
+SYMBOLS = {0: '↑', 1: '↓', 2: '←', 3: '→'}
+
+# Q-Learning Parameters
+Q = np.zeros((ROWS, COLS, 4))
+alpha = 0.1
+gamma = 0.9
+epsilon = 1.0
+epsilon_min = 0.01
+epsilon_decay = 0.995
+episodes = 500
+episode_rewards = []
+
+random.seed(42)
+np.random.seed(42)
+
+# Environment
+def take_action(state, action):
+    row, col = state
+    dr, dc = ACTIONS[action]
+    new_state = (row + dr, col + dc)
+
+    if not (0 <= new_state[0] < ROWS and 0 <= new_state[1] < COLS) or new_state == OBSTACLE:
+        return state, -10
+    if new_state == GOAL:
+        return new_state, 100
+    return new_state, -1
+
+# Epsilon-Greedy Strategy
+def choose_action(state, epsilon):
+    if random.random() < epsilon:
+        return random.randint(0, 3)
+    return int(np.argmax(Q[state[0], state[1]]))
+
+# Train Q-Learning Agent
+for episode in range(episodes):
+    state = START
+    total_reward = 0
+
+    for step in range(100):
+        action = choose_action(state, epsilon)
+        next_state, reward = take_action(state, action)
+
+        old_q = Q[state[0], state[1], action]
+        next_max_q = 0 if next_state == GOAL else np.max(Q[next_state[0], next_state[1]])
+
+        Q[state[0], state[1], action] = old_q + alpha * (reward + gamma * next_max_q - old_q)
+
+        state = next_state
+        total_reward += reward
+
+        if state == GOAL:
+            break
+
+    episode_rewards.append(total_reward)
+    epsilon = max(epsilon_min, epsilon * epsilon_decay)
+
+print("Training Completed")
+print("Final Epsilon =", round(epsilon, 4))
+
+# Display Learned Policy
+print("\nLearned Policy:")
+for row in range(ROWS):
+    for col in range(COLS):
+        state = (row, col)
+        if state == START:
+            print('S', end=' ')
+        elif state == GOAL:
+            print('G', end=' ')
+        elif state == OBSTACLE:
+            print('X', end=' ')
+        else:
+            print(SYMBOLS[np.argmax(Q[row, col])], end=' ')
+    print()
+
+# Test Learned Policy
+state = START
+path = [state]
+test_reward = 0
+
+for step in range(20):
+    action = int(np.argmax(Q[state[0], state[1]]))
+    state, reward = take_action(state, action)
+    path.append(state)
+    test_reward += reward
+
+    if state == GOAL:
+        break
+
+print("\nPath Followed:", path)
+print("Total Test Reward =", test_reward)
+print("Steps Taken =", len(path) - 1)
+print("Goal Reached =", state == GOAL)
+
+# Plot Learning Performance
+plt.figure(figsize=(10, 5))
+plt.plot(episode_rewards, alpha=0.4, label='Episode Reward')
+moving_avg = np.convolve(episode_rewards, np.ones(20) / 20, mode='valid')
+plt.plot(range(19, episodes), moving_avg, label='Moving Average Reward')
+plt.xlabel('Episode')
+plt.ylabel('Total Reward')
+plt.title('Q-Learning Performance')
+plt.legend()
+plt.grid(True)
+plt.show()
