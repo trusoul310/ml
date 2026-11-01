@@ -1,0 +1,54 @@
+
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+
+# Load dataset
+df = pd.read_csv(r"C:\Downloads\titanic.csv")
+
+print(df.head())
+df.info()
+print(df.isnull().sum())
+
+# Handling missing values
+df['Age'] = df['Age'].fillna(df['Age'].mean())
+df['Embarked'] = df['Embarked'].fillna(df['Embarked'].mode()[0])
+
+# Drop Cabin because most values are missing
+df.drop('Cabin', axis=1, inplace=True)
+
+print("\nMissing values after handling:")
+print(df.isnull().sum())
+
+# Encoding categorical variables
+df['Sex'] = df['Sex'].map({'male': 0, 'female': 1})
+
+df = pd.get_dummies(df, columns=['Embarked'], drop_first=True, dtype=int)
+
+# Drop unnecessary text and identifier columns
+df.drop(['PassengerId', 'Name', 'Ticket'], axis=1, inplace=True)
+
+print("\nDataset after encoding:")
+print(df.head())
+
+# Scaling numerical attributes
+scaler = StandardScaler()
+df[['Age', 'Fare']] = scaler.fit_transform(df[['Age', 'Fare']])
+
+print("\nDataset after scaling:")
+print(df.head())
+
+# Save cleaned dataset
+df.to_csv("Titanic_Cleaned.csv", index=False)
+
+print("\nClean Dataset Saved Successfully")
+
+# Display statistical summary
+print("\nStatistical Summary:")
+print(df.describe())
+
+# Final verification
+print("\nFinal Missing Values:")
+print(df.isnull().sum())
+
+print("\nFinal Dataset Shape:", df.shape)
