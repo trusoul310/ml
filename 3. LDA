@@ -1,0 +1,60 @@
+
+import time
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+# Load dataset
+df = pd.read_csv(r"C:\Downloads\breast_cancer_wisconsin.csv")
+
+print(df.head())
+print(df.info())
+
+# Separate features and target
+X = df.drop('target', axis=1)
+y = df['target']
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42
+)
+
+# Standardize data
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Original Data
+start = time.time()
+
+model = LogisticRegression(max_iter=500)
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+end = time.time()
+
+print("\nOriginal Data")
+print("Features :", X_train.shape[1])
+print("Accuracy :", round(accuracy_score(y_test, y_pred), 4))
+print("Time :", round(end - start, 4), "seconds")
+
+# LDA
+lda = LinearDiscriminantAnalysis(n_components=1)
+X_train_lda = lda.fit_transform(X_train, y_train)
+X_test_lda = lda.transform(X_test)
+
+start = time.time()
+
+model_lda = LogisticRegression(max_iter=500)
+model_lda.fit(X_train_lda, y_train)
+y_pred_lda = model_lda.predict(X_test_lda)
+
+end = time.time()
+
+print("\nLDA")
+print("Features :", X_train_lda.shape[1])
+print("Accuracy :", round(accuracy_score(y_test, y_pred_lda), 4))
+print("Time :", round(end - start, 4), "seconds")
