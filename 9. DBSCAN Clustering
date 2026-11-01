@@ -1,0 +1,60 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import DBSCAN
+from sklearn.metrics import silhouette_score
+
+# Load Dataset
+df = pd.read_csv(r"C:\Downloads\iris.csv")
+print(df.head())
+print(df.shape)
+print(df.isnull().sum())
+
+# Select Features
+X = df.drop('target', axis=1)
+
+# Feature Scaling
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Apply DBSCAN
+dbscan = DBSCAN(eps=0.5, min_samples=5)
+labels = dbscan.fit_predict(X_scaled)
+
+# Add Cluster Labels
+df['Cluster'] = labels
+print("\nClustered Data:")
+print(df.head(10))
+
+# Count Clusters and Noise Points
+number_of_clusters = len(set(labels) - {-1})
+number_of_noise_points = list(labels).count(-1)
+
+print("\nNumber of Clusters =", number_of_clusters)
+print("Number of Noise Points =", number_of_noise_points)
+
+# Cluster-wise Data Count
+print("\nCluster-wise Data Count:")
+print(df['Cluster'].value_counts().sort_index())
+
+# Visualize DBSCAN Clusters
+plt.figure(figsize=(8, 6))
+plt.scatter(X_scaled[:, 0], X_scaled[:, 1], c=labels, cmap='viridis', s=50)
+plt.xlabel('Sepal Length (Standardized)')
+plt.ylabel('Sepal Width (Standardized)')
+plt.title('DBSCAN Clustering on Iris Dataset')
+plt.grid(True)
+plt.show()
+
+# Calculate Silhouette Score
+non_noise = labels != -1
+if len(set(labels[non_noise])) >= 2:
+    score = silhouette_score(X_scaled[non_noise], labels[non_noise])
+    print("\nSilhouette Score =", round(score, 4))
+else:
+    print("\nSilhouette Score cannot be calculated.")
+
+# Display Noise Points
+noise_points = df[df['Cluster'] == -1]
+print("\nNoise Points:")
+print(noise_points)
