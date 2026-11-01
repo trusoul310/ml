@@ -1,0 +1,46 @@
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
+
+# Load Dataset
+df = pd.read_csv(r"C:\Downloads\breast_cancer_wisconsin.csv")
+print(df.head())
+print(df.shape)
+print(df.isnull().sum())
+
+# Select Features and Target
+X = df.drop('target', axis=1)
+y = df['target']
+
+# Split Dataset
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42, stratify=y)
+
+# Feature Scaling
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# SVM with Nonlinear RBF Kernel
+svm_rbf = SVC(kernel='rbf', C=1.0, gamma='scale')
+svm_rbf.fit(X_train, y_train)
+
+# Predict Values
+y_pred = svm_rbf.predict(X_test)
+
+# Evaluation Metrics
+print("\nSVM with Nonlinear RBF Kernel")
+print("Accuracy =", accuracy_score(y_test, y_pred))
+print("Precision =", precision_score(y_test, y_pred))
+print("Recall =", recall_score(y_test, y_pred))
+print("F1 Score =", f1_score(y_test, y_pred))
+
+# Confusion Matrix
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+
+# Classification Report
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred, target_names=['Malignant', 'Benign']))
